@@ -21,7 +21,7 @@ import com.sst.model.ProductDetails;
 public class CustomerController {
 
 	// This method will return one Customer Details in JSON format.
-	// http://localhost:8080/custDetails/singleRec
+	// http://localhost:8082/custDetails/singleRec
 	@GetMapping("/singleRec")
 	public ResponseEntity<CustomerDetails> getCustomerDetails() {
 		CustomerDetails cust = new CustomerDetails();
@@ -33,7 +33,7 @@ public class CustomerController {
 	}
 
 	// This method will return multiple Details in JSON format.
-	// http://localhost:8080/custDetails/multiRec
+	// http://localhost:8082/custDetails/multiRec
 	@GetMapping("/multiRec")
 	public ResponseEntity<List> getMultiCustomerDetails() {
 
