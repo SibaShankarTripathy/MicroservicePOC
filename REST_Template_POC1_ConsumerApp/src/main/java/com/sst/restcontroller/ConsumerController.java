@@ -27,6 +27,9 @@ public class ConsumerController {
 		ResponseEntity<String> responseFromProvider = null;
 		try {
 			// Calling of another application method using API with return type, by using getForEntity() method.
+			// We can use 2 important method getForEntity() and getForObject().
+			// getForEntity() return is ResponseEntity as response with HTTP Status.
+			// getForObject() return is StringType as response without HTTP Status.
 			responseFromProvider = rt.getForEntity(providerUrlPath, String.class);
 
 			System.out.println("========== Welcome to Consumer Application =========");
@@ -53,6 +56,10 @@ public class ConsumerController {
 			if (statusCode.value() == 200) {
 				consumerAppResponse = responseFromProvider.getBody();
 			}
+			
+			System.out.println("------------------------------------------------------------------------------------------");
+			String responseFromProviderAsObject = rt.getForObject(providerUrlPath, String.class); // Use of getForObject()
+			System.out.println("Response from provider ============= "+responseFromProviderAsObject);
 		} catch (Exception e) {
 			System.out.println("Exception occured while calling provider app url.....");
 			consumerAppResponse = "There is no response from Provider App. It may be stopped or incorrect url";
