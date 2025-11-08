@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sst.model.PeopleDetails;
 
 @RestController
@@ -65,5 +66,40 @@ public class ProviderPeopleDetails {
 		System.out.println("PeopleDetails set in list inside provider app::::" + allPeopleDetails.toString());
 		return new ResponseEntity<List<PeopleDetails>>(allPeopleDetails, HttpStatus.OK);
 	}
-
+	
+	// In this below method I/P -- nothing O/P -- ListObject
+	@GetMapping("/getSinglePeopleDetails")
+	public ResponseEntity<?> getSinglePeopledetails() {
+		System.out.println("============= This is Provider get single people details method =============");
+		// Here I will create some dummy data to send consumer app.
+		PeopleDetails pd1 = new PeopleDetails("Jick", "Boston", 24, 7896541230L);
+		System.out.println("PeopleDetails set in list inside provider app::::" + pd1.toString());
+		return new ResponseEntity<PeopleDetails>(pd1, HttpStatus.OK);
+	}
+	
+	// In this below method I/P -- nothing O/P -- ListObject
+	@GetMapping("/getSinglePeopleDetailsObjFrmt")
+	public ResponseEntity<?> getSinglePeopleDetailsObjFrmt() {
+		System.out.println("============= This is Provider get single people details method Object to JSON =============");
+		// Here I will create some dummy data to send consumer app.
+		PeopleDetails pd1 = new PeopleDetails("Jick", "Boston", 24, 7896541230L);
+		System.out.println("PeopleDetails set in list inside provider app::::" + pd1.toString());
+		// Conversion of Object to JSON
+		
+		try {
+			// I am converting Object to JSON value to send to Consumer Application
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.writeValueAsString(pd1);// For single object to JSON conversion
+			//For List object conversion
+			// Let your list object name is lstVal
+			//mapper.writeValueAsString(lstVal);// For List(Multiple value) object to JSON conversion
+			
+			
+		} catch (Exception e) {
+			System.out.println("Exception Occured while converting ModelObject to JSON");
+		}
+		
+		return new ResponseEntity<PeopleDetails>(pd1, HttpStatus.OK);
+	}
+f
 }

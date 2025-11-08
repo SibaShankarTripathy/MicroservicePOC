@@ -1,5 +1,6 @@
 package com.sst.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sst.model.PeopleDetails;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+/*
+ * SWAGGER DETAILS:::
+ * In this mini project I implemented swagger.
+ * To implement swagger we need only one dependency named as "springdoc-openapi-starter-webmvc-ui" new version
+ * This spring boot application is 3.5.7 version and it is compatibility with springdoc-openapi-starter-webmvc-ui.
+ * If you are using spring boot 2.x.x then use this swagger version named as "springdoc-openapi-ui"
+ * To get access the swagger link then use base url/swagger-ui/index.html. Ex: http://localhost:8083/RestMiniProjectConsumerApp/swagger-ui/index.html#
+ * By default in swagger page your project name similar as your controller name with lower case.
+ * 
+ */
+
+
+
 @RestController
 @RequestMapping("/consumerApp")
-public class ConsuerController {
+@Tag(name="ConsumerApp", description="This controller used to CRUD operation for consumer")
+//name is used for your controller name. description is used to describe your controller work.
+public class ConsumerController {
 
 	//To use this see main method
 	@Autowired
@@ -27,6 +51,11 @@ public class ConsuerController {
 	// Here I am not using runner class so I will create methods to hit from browser which will communicate to provider application methods
 	// http://localhost:8083/RestMiniProjectConsumerApp/consumerApp/executePplSaveMethod
 	@GetMapping("/executePplSaveMethod")
+	@Operation(summary = "save people details", description = "save new people details in DB")//Swagger tag
+	// @Opeartion at method level is similar to @Tag at class level
+	// summary is similar to name.
+	@ApiResponse(responseCode = "201", description = "successfully saved people details")//swagger tag
+	//Open swagger URL to see these description.
 	public ResponseEntity<String> insertPeopleDetails() {
 		String saveUrl = "http://localhost:8081/RESTTemplateMiniProject/peopleDetails/saveDetails";
 
@@ -202,5 +231,138 @@ public class ConsuerController {
 		return new ResponseEntity<String>("All details retrieved successfully....", HttpStatus.OK);
 
 	}
+	
+	/*
+	 * In REST by default request and response are JSON format.
+	 * Let there is an requirement one of API like normal bean object instead of JSON then we need this below concept.
+	 * Here we will learn two things one is JSON -> Java Object(Serialization Process) and two is Java Object -> JSON(DeSerialization Process)
+	 * To achieve this we need JACKSON API concept and need to keep that required Java bean object in both Provider and Consumer APP.
+	 * For JACKSON API no need for separate dependency because it is included in spring-web-starter
+	 * Here our bean object is People Details so we will keep this in both consumer and provider app.
+	 * Carefully observe every line in below 2 method like retrieve for single details and List of details
+	 * For Object to JSON conversion we need to make method in Provider App for testing purpose and taht method we will call here.
+	 */
+	// JSON to Java Object
+	
+	// R -- Retrieve
+	// http://localhost:8083/RestMiniProjectConsumerApp/consumerApp/executeRetrieveMethod1
+	@GetMapping("/executeRetrieveMethod1")
+	public ResponseEntity<String> getAllPeopleDetails1() {
+
+		System.out.println("========= Consumer Application ==========");
+		System.out.println("====== You are under getPeopleDetails1() ==========");
+		System.out.println("====== Here we will see JSON to Object convertion ==========");
+		// Retrieve all people details
+		String allPeopleDetailsUrl = "http://localhost:8081/RESTTemplateMiniProject/peopleDetails/getAllPeopleDetails";
+
+		ResponseEntity<String> getForEntityResponse = template.getForEntity(allPeopleDetailsUrl, String.class);
+		System.out.println("All people details in JSON format using getForEntity()::::" + getForEntityResponse.getBody());
+		System.out.println("Status Details using getForEntity()::::" + getForEntityResponse.getStatusCode());
+		
+		// JSON to Java Object
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			ArrayList<PeopleDetails> peopleDetailsValue = mapper.readValue(getForEntityResponse.getBody(), new TypeReference<ArrayList<PeopleDetails>>() {});
+			//PeopleDetails peopleDetailsValue = mapper.readValue(getForEntityResponse.getBody(), PeopleDetails.class);//This line will use for single object value
+			System.out.println("People Details in Model Object format:::::::"+peopleDetailsValue);
+		} catch (Exception e) {
+			System.out.println("Exception occured while converting JSON data to model Object");
+		}
+		
+
+		System.out.println("----------------------------------------------------------------------------------");
+		// We will retrieve all details by using exchange()
+
+		// For exchange() we must need HttpEntity for that we must need HttpHeaders.
+		HttpHeaders headers = new HttpHeaders();
+		// As per required we can add multiple headers also
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<String> requestObject = new HttpEntity<String>(headers);
+
+		ResponseEntity<List> exchangeMethodResponse = template.exchange(allPeopleDetailsUrl, HttpMethod.GET, null,
+				List.class);
+		System.out.println("All people details using exchange():::::" + exchangeMethodResponse.getBody());
+		System.out.println("Status Details using exchange():::::" + exchangeMethodResponse.getStatusCode());
+		return new ResponseEntity<String>("All details retrieved successfully....", HttpStatus.OK);
+
+	}
+	
+		// R -- Retrieve
+		// http://localhost:8083/RestMiniProjectConsumerApp/consumerApp/executeRetrieveMethod2
+		@GetMapping("/executeRetrieveMethod2")
+		public ResponseEntity<String> getSinglePeopleDetails() {
+
+			System.out.println("========= Consumer Application ==========");
+			System.out.println("====== You are under getSinglePeopleDetails() ==========");
+			System.out.println("====== Here we will see JSON to Object convertion ==========");
+			// Retrieve all people details
+			String allPeopleDetailsUrl = "http://localhost:8081/RESTTemplateMiniProject/peopleDetails/getSinglePeopleDetails";//This line for single Object retrieve
+
+			ResponseEntity<String> getForEntityResponse = template.getForEntity(allPeopleDetailsUrl, String.class);
+			System.out.println("Single people details in JSON format using getForEntity()::::" + getForEntityResponse.getBody());
+			System.out.println("Status Details using getForEntity()::::" + getForEntityResponse.getStatusCode());
+			
+			// JSON to Java Object
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				PeopleDetails peopleDetailsValue = mapper.readValue(getForEntityResponse.getBody(), PeopleDetails.class);//This line will use for single object value
+				System.out.println("Single People Details in Model Object format:::::::"+peopleDetailsValue);
+			} catch (Exception e) {
+				System.out.println("Exception occured while converting JSON data to model Object");
+			}
+			
+
+			System.out.println("----------------------------------------------------------------------------------");
+			// We will retrieve all details by using exchange()
+
+			//For exchange() we must need HttpEntity for that we must need HttpHeaders.
+			HttpHeaders headers = new HttpHeaders();
+			// As per required we can add multiple headers also
+			headers.setContentType(MediaType.APPLICATION_JSON);
+	
+			HttpEntity<String> requestObject = new HttpEntity<String>(headers);
+	
+			ResponseEntity<PeopleDetails> exchangeMethodResponse = template.exchange(allPeopleDetailsUrl, HttpMethod.GET, null,
+					PeopleDetails.class);
+			System.out.println("All people details using exchange():::::" + exchangeMethodResponse.getBody());
+			System.out.println("Status Details using exchange():::::" + exchangeMethodResponse.getStatusCode());
+			return new ResponseEntity<String>("All details retrieved successfully....", HttpStatus.OK);
+
+		}
+		
+		// R -- Retrieve
+		// http://localhost:8083/RestMiniProjectConsumerApp/consumerApp/executeRetrieveMethod2
+		@GetMapping("/executeRetrieveMethod3")
+		public ResponseEntity<String> getSinglePeopleDetails1() {
+
+			System.out.println("========= Consumer Application ==========");
+			System.out.println("====== You are under getSinglePeopleDetails1() ==========");
+			System.out.println("====== To understand this method purpose see Provider app getSinglePeopleDetailsObjFrmt() ==========");
+			// Retrieve all people details
+			String allPeopleDetailsUrl = "http://localhost:8081/RESTTemplateMiniProject/peopleDetails/getSinglePeopleDetailsObjFrmt";// This line for single Object retrieve
+
+			ResponseEntity<String> getForEntityResponse = template.getForEntity(allPeopleDetailsUrl, String.class);
+			System.out.println("Single people details in JSON format using getForEntity()::::" + getForEntityResponse.getBody());
+			System.out.println("Status Details using getForEntity()::::" + getForEntityResponse.getStatusCode());
+
+
+			System.out.println("----------------------------------------------------------------------------------");
+			// We will retrieve all details by using exchange()
+
+			// For exchange() we must need HttpEntity for that we must need HttpHeaders.
+			HttpHeaders headers = new HttpHeaders();
+			// As per required we can add multiple headers also
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<String> requestObject = new HttpEntity<String>(headers);
+
+			ResponseEntity<PeopleDetails> exchangeMethodResponse = template.exchange(allPeopleDetailsUrl,
+					HttpMethod.GET, null, PeopleDetails.class);
+			System.out.println("All people details using exchange():::::" + exchangeMethodResponse.getBody());
+			System.out.println("Status Details using exchange():::::" + exchangeMethodResponse.getStatusCode());
+			return new ResponseEntity<String>("All details retrieved successfully....", HttpStatus.OK);
+
+		}
 
 }
